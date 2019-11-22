@@ -22,9 +22,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ceph/ceph-csi/pkg/cephfs"
-	"github.com/ceph/ceph-csi/pkg/rbd"
-	"github.com/ceph/ceph-csi/pkg/util"
+	"github.com/zdnscloud/ceph-csi/pkg/cephfs"
+	"github.com/zdnscloud/ceph-csi/pkg/rbd"
+	"github.com/zdnscloud/ceph-csi/pkg/util"
 	"k8s.io/klog"
 )
 

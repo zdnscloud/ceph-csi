@@ -19,8 +19,8 @@ package cephfs
 import (
 	"k8s.io/klog"
 
-	csicommon "github.com/ceph/ceph-csi/pkg/csi-common"
-	"github.com/ceph/ceph-csi/pkg/util"
+	csicommon "github.com/zdnscloud/ceph-csi/pkg/csi-common"
+	"github.com/zdnscloud/ceph-csi/pkg/util"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 )

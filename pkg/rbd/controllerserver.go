@@ -19,8 +19,8 @@ package rbd
 import (
 	"fmt"
 
-	csicommon "github.com/ceph/ceph-csi/pkg/csi-common"
-	"github.com/ceph/ceph-csi/pkg/util"
+	csicommon "github.com/zdnscloud/ceph-csi/pkg/csi-common"
+	"github.com/zdnscloud/ceph-csi/pkg/util"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"

@@ -17,7 +17,7 @@ limitations under the License.
 package cephfs
 
 import (
-	"github.com/ceph/ceph-csi/pkg/util"
+	"github.com/zdnscloud/ceph-csi/pkg/util"
 
 	"k8s.io/klog"
 )

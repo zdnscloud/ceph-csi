@@ -20,9 +20,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
-	csicommon "github.com/ceph/ceph-csi/pkg/csi-common"
-	"github.com/ceph/ceph-csi/pkg/util"
+	csicommon "github.com/zdnscloud/ceph-csi/pkg/csi-common"
+	"github.com/zdnscloud/ceph-csi/pkg/util"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"google.golang.org/grpc/codes"
@@ -270,12 +271,13 @@ func (ns *NodeServer) NodeUnpublishVolume(ctx context.Context, req *csi.NodeUnpu
 	if err = unmountVolume(targetPath); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	klog.Infof("cephfs: successfully unbinded volume %s from %s", req.GetVolumeId(), targetPath)
 
-	if err = os.Remove(targetPath); err != nil {
+	parentDir := targetPath[:strings.LastIndex(targetPath, "/")]
+	klog.Infof("Remove CSI volume path: %s", parentDir)
+	if err := os.RemoveAll(parentDir); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
-	klog.Infof("cephfs: successfully unbinded volume %s from %s", req.GetVolumeId(), targetPath)
 
 	return &csi.NodeUnpublishVolumeResponse{}, nil
 }
