@@ -76,6 +76,7 @@ func NewControllerServer(d *csicommon.CSIDriver, cachePersister util.CachePersis
 	return &ControllerServer{
 		DefaultControllerServer: csicommon.NewDefaultControllerServer(d),
 		MetadataStore:           cachePersister,
+		VolumeLocks:             util.NewVolumeLocks(),
 	}
 }
 
@@ -83,6 +84,7 @@ func NewControllerServer(d *csicommon.CSIDriver, cachePersister util.CachePersis
 func NewNodeServer(d *csicommon.CSIDriver, t string) *NodeServer {
 	return &NodeServer{
 		DefaultNodeServer: csicommon.NewDefaultNodeServer(d, t),
+		VolumeLocks:       util.NewVolumeLocks(),
 	}
 }
 
@@ -93,7 +95,7 @@ func (fs *Driver) Run(conf *util.Config, cachePersister util.CachePersister) {
 	// Configuration
 	PluginFolder = conf.PluginPath
 
-	if err := loadAvailableMounters(); err != nil {
+	if err := loadAvailableMounters(conf); err != nil {
 		klog.Fatalf("cephfs: failed to load ceph mounters: %v", err)
 	}
 

@@ -213,7 +213,7 @@ func createCephfsStorageClass(c kubernetes.Interface, f *framework.Framework, en
 	Expect(err).Should(BeNil())
 }
 
-func createRBDStorageClass(c kubernetes.Interface, f *framework.Framework) {
+func createRBDStorageClass(c kubernetes.Interface, f *framework.Framework, parameters map[string]string) {
 	scPath := fmt.Sprintf("%s/%s", rbdExamplePath, "storageclass.yaml")
 	sc := getStorageClass(scPath)
 	sc.Parameters["pool"] = "replicapool"
@@ -226,6 +226,9 @@ func createRBDStorageClass(c kubernetes.Interface, f *framework.Framework) {
 	fsID = strings.Trim(fsID, "\n")
 
 	sc.Parameters["clusterID"] = fsID
+	for k, v := range parameters {
+		sc.Parameters[k] = v
+	}
 	_, err := c.StorageV1().StorageClasses().Create(&sc)
 	Expect(err).Should(BeNil())
 }
@@ -607,6 +610,13 @@ func validatePVCAndAppBinding(pvcPath, appPath string, f *framework.Framework) {
 	if err != nil {
 		Fail(err.Error())
 	}
+}
+func deletePodWithLabel(label string) error {
+	_, err := framework.RunKubectl("delete", "po", "-l", label)
+	if err != nil {
+		e2elog.Logf("failed to delete pod %v", err)
+	}
+	return err
 }
 
 func validateNormalUserPVCAccess(pvcPath string, f *framework.Framework) {

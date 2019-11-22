@@ -33,7 +33,7 @@ make image-cephcsi
 | `--drivername`        | `rbd.csi.ceph.com`    | Name of the driver (Kubernetes: `provisioner` field in StorageClass must correspond to this value)                                                                                                                                                                                   |
 | `--nodeid`            | _empty_               | This node's ID                                                                                                                                                                                                                                                                       |
 | `--type`              | _empty_               | Driver type `[rbd | cephfs]` If the driver type is set to  `rbd` it will act as a `rbd plugin` or if it's set to `cephfs` will act as a `cephfs plugin`                                                                                                                              |
-| `--containerized`     | true                  | Whether running in containerized mode                                                                                                                                                                                                                                                |
+| `--containerized`     | false                 | Whether running in containerized mode( This flag is deprecated)                                                                                                                                                                                                                      |
 | `--instanceid`        | "default"             | Unique ID distinguishing this instance of Ceph CSI among other instances, when sharing Ceph clusters across CSI instances for provisioning                                                                                                                                           |
 | `--metadatastorage`   | _empty_               | Points to where legacy (1.0.0 or older plugin versions) metadata about provisioned volumes are kept, as file or in as k8s configmap (`node` or `k8s_configmap` respectively)                                                                                                         |
 | `--pidlimit`          | _0_                   | Configure the PID limit in cgroups. The container runtime can restrict the number of processes/tasks which can cause problems while provisioning (or deleting) a large number of volumes. A value of `-1` configures the limit to the maximum, `0` does not configure limits at all. |
@@ -51,8 +51,7 @@ make image-cephcsi
 | `clusterID`                                                                                         | yes                  | String representing a Ceph cluster, must be unique across all Ceph clusters in use for provisioning, cannot be greater than 36 bytes in length, and should remain immutable for the lifetime of the Ceph cluster in use |
 | `pool`                                                                                              | yes                  | Ceph pool into which the RBD image shall be created                                                                                                                                                                     |
 | `dataPool`                                                                                          | no                   | Ceph pool used for the data of the RBD images.                                                                                                                                                                          |
-| `imageFormat`                                                                                       | no                   | RBD image format. Defaults to `2`. See [man pages](http://docs.ceph.com/docs/mimic/man/8/rbd/#cmdoption-rbd-image-format)                                                                                               |
-| `imageFeatures`                                                                                     | no                   | RBD image features. Available for `imageFormat=2`. CSI RBD currently supports only `layering` feature. See [man pages](http://docs.ceph.com/docs/mimic/man/8/rbd/#cmdoption-rbd-image-feature)                          |
+| `imageFeatures`                                                                                     | no                   | RBD image features. CSI RBD currently supports only `layering` feature. See [man pages](http://docs.ceph.com/docs/mimic/man/8/rbd/#cmdoption-rbd-image-feature)                                                         |
 | `csi.storage.k8s.io/provisioner-secret-name`, `csi.storage.k8s.io/node-stage-secret-name`           | yes (for Kubernetes) | name of the Kubernetes Secret object containing Ceph client credentials. Both parameters should have the same value                                                                                                     |
 | `csi.storage.k8s.io/provisioner-secret-namespace`, `csi.storage.k8s.io/node-stage-secret-namespace` | yes (for Kubernetes) | namespaces of the above Secret objects                                                                                                                                                                                  |
 | `mounter`                                                                                           | no                   | if set to `rbd-nbd`, use `rbd-nbd` on nodes that have `rbd-nbd` and `nbd` kernel modules to map rbd images                                                                                                              |
@@ -152,14 +151,8 @@ test the deployment further.
 The same requirements from the Kubernetes section apply here, i.e. Kubernetes
 version, privileged flag and shared mounts.
 
-The Helm chart is located in `deploy/rbd/kubernetes/v1.14+/helm/ceph-csi-rbd`.
+The Helm chart is located in `charts/ceph-csi-rbd`.
 
 **Deploy Helm Chart:**
 
-```bash
-helm install deploy/rbd/kubernetes/v1.14+/helm/ceph-csi-rbd
-```
-
-The Helm chart deploys all of the required resources to use the CSI RBD driver.
-After deploying the chart you can verify the deployment using the instructions
-above for verifying the deployment with Kubernetes
+[See the Helm chart readme for installation instructions.](../charts/ceph-csi-rbd/README.md)

@@ -18,8 +18,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/ceph/ceph-csi/pkg/cephfs"
@@ -59,10 +61,11 @@ func init() {
 	flag.BoolVar(&conf.IsNodeServer, "nodeserver", false, "start cephcsi node server")
 
 	// rbd related flags
-	flag.BoolVar(&conf.Containerized, "containerized", true, "whether run as containerized")
+	flag.BoolVar(&conf.Containerized, "containerized", false, "whether run as containerized")
 
 	// cephfs related flags
 	flag.StringVar(&conf.MountCacheDir, "mountcachedir", "", "mount info cache save dir")
+	flag.BoolVar(&conf.ForceKernelCephFS, "forcecephkernelclient", false, "enable Ceph Kernel clients on kernel < 4.17 which support quotas")
 
 	// liveness/grpc metrics related flags
 	flag.IntVar(&conf.MetricsPort, "metricsport", 8080, "TCP port for liveness/grpc metrics requests")
@@ -73,6 +76,8 @@ func init() {
 	flag.BoolVar(&conf.EnableGRPCMetrics, "enablegrpcmetrics", false, "enable grpc metrics")
 	flag.StringVar(&conf.HistogramOption, "histogramoption", "0.5,2,6",
 		"Histogram option for grpc metrics, should be comma separated value, ex:= 0.5,2,6 where start=0.5 factor=2, count=6")
+
+	flag.BoolVar(&conf.Version, "version", false, "Print cephcsi version information")
 
 	klog.InitFlags(nil)
 	if err := flag.Set("logtostderr", "true"); err != nil {
@@ -100,6 +105,15 @@ func getDriverName() string {
 }
 
 func main() {
+	if conf.Version {
+		fmt.Println("Cephcsi Version:", util.DriverVersion)
+		fmt.Println("Git Commit:", util.GitCommit)
+		fmt.Println("Go Version:", runtime.Version())
+		fmt.Println("Compiler:", runtime.Compiler)
+		fmt.Printf("Platform: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+		os.Exit(0)
+	}
+
 	klog.Infof("Driver version: %s and Git version: %s", util.DriverVersion, util.GitCommit)
 	var cp util.CachePersister
 
@@ -159,6 +173,9 @@ func main() {
 	switch conf.Vtype {
 	case rbdType:
 		driver := rbd.NewDriver()
+		if conf.Containerized {
+			klog.Warning("containerized flag is deprecated and will be removed")
+		}
 		driver.Run(&conf, cp)
 
 	case cephfsType:

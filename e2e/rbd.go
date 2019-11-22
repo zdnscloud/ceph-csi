@@ -65,7 +65,7 @@ var _ = Describe("RBD", func() {
 		createRBDPool()
 		createConfigMap(rbdDirPath, f.ClientSet, f)
 		deployRBDPlugin()
-		createRBDStorageClass(f.ClientSet, f)
+		createRBDStorageClass(f.ClientSet, f, make(map[string]string))
 		createRBDSecret(f.ClientSet, f)
 
 	})
@@ -115,6 +115,16 @@ var _ = Describe("RBD", func() {
 			By("create a PVC and Bind it to an app with normal user", func() {
 				validateNormalUserPVCAccess(pvcPath, f)
 			})
+			// Skipping ext4 FS testing
+
+			By("create a PVC and Bind it to an app with ext4 as the FS ", func() {
+				deleteResource(rbdExamplePath + "storageclass.yaml")
+				createRBDStorageClass(f.ClientSet, f, map[string]string{"csi.storage.k8s.io/fstype": "ext4"})
+				validatePVCAndAppBinding(pvcPath, appPath, f)
+				deleteResource(rbdExamplePath + "storageclass.yaml")
+				createRBDStorageClass(f.ClientSet, f, make(map[string]string))
+			})
+
 			// skipping snapshot testing
 
 			// By("create a PVC clone and Bind it to an app", func() {
@@ -220,6 +230,40 @@ var _ = Describe("RBD", func() {
 
 			By("check data persist after recreating pod with same pvc", func() {
 				err := checkDataPersist(pvcPath, appPath, f)
+				if err != nil {
+					Fail(err.Error())
+				}
+			})
+
+			By("Test unmount after nodeplugin restart", func() {
+				pvc, err := loadPVC(pvcPath)
+				if err != nil {
+					Fail(err.Error())
+				}
+				pvc.Namespace = f.UniqueName
+
+				app, err := loadApp(appPath)
+				if err != nil {
+					Fail(err.Error())
+				}
+				app.Namespace = f.UniqueName
+				err = createPVCAndApp("", f, pvc, app)
+				if err != nil {
+					Fail(err.Error())
+				}
+
+				// delete rbd nodeplugin pods
+				err = deletePodWithLabel("app=csi-rbdplugin")
+				if err != nil {
+					Fail(err.Error())
+				}
+				// wait for nodeplugin pods to come up
+				err = waitForDaemonSets(rbdDaemonsetName, namespace, f.ClientSet, deployTimeout)
+				if err != nil {
+					Fail(err.Error())
+				}
+
+				err = deletePVCAndApp("", f, pvc, app)
 				if err != nil {
 					Fail(err.Error())
 				}
